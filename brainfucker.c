@@ -1,4 +1,5 @@
 /*
+ * Brainfucker 
  * A concise brainfuck interpreter implemented by "redraiment"(Not me) (see http://blog.csdn.net/redraiment/article/details/7483062).
  * Modified by JacobChengZhang for further utilization
  * Tokens: "><+-.,[]"
@@ -13,6 +14,12 @@
 #define DATA_SEGMENT_SIZE 32768
 
 #define DEBUG
+
+#ifdef _WIN32
+	#define STDIN_RESTORE "CON"
+#else
+	#define STDIN_RESTORE "/dev/tty"
+#endif
 
 enum {
 	BF_OK = 0,
@@ -139,16 +146,13 @@ void setup() {
 			return;
 		}
 	}
-	freopen("CON","r",stdin); 
+	freopen(STDIN_RESTORE,"r",stdin);
 }
 
 void run() {
-	while (vm.cs[vm.ip]) {
+	while (vm.cs[vm.ip] && sign == BF_OK) {
     	vm.fn[vm.cs[vm.ip]]();
     	vm.ip++;
-    	if (sign != BF_OK){
-    		break;
-		}
 	}
 }
 
@@ -157,17 +161,18 @@ int main(int argc, char* argv[]) {
 		FILE * fp;
 		fp = freopen(argv[1], "r", stdin);
 		if (fp == NULL){
-			printf("Error opening \"%s\".\n", argv[1]);
+			printf("Failed to open \"%s\".\n", argv[1]);
 			sign = BF_FAIL_OPEN_FILE;
 			return sign;
 		}
 	}
 	else {
-		printf("___________ brain-fuck ___________ (press 'Ctrl-Z' after input finish)\n");
+		printf("___________ Brainfucker ___________ (press 'Ctrl-Z' after finish input)\n");
 	}
 
 	setup();
 	run();
 	
+	fclose(stdin);
 	return sign;
 }
